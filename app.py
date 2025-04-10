@@ -1,5 +1,6 @@
 from gemini import call_gemini
 import logging, os, pytz, json
+from typing import Dict, Optional
 from datetime import datetime, time
 import requests
 from slack_bolt import App
@@ -116,6 +117,7 @@ def build_feedback_block_kit():
             },
             {
                 "type": "section",
+                "block_id": "feedback_reason_block",
                 "text": {
                     "type": "mrkdwn",
                     "text": "*Q1. 次のうちどれに当てはまりますか？*"
@@ -123,9 +125,10 @@ def build_feedback_block_kit():
                 "accessory": {
                     "type": "radio_buttons",
                     "options": [
-                        {"text": {"type": "plain_text", "text": "情報が古い・更新されていない", "emoji": True}, "value": "value-0"},
-                        {"text": {"type": "plain_text", "text": "法令や就業規則などに則していない回答だった", "emoji": True}, "value": "value-1"},
-                        {"text": {"type": "plain_text", "text": "共有されたリンクにアクセスできなかった", "emoji": True}, "value": "value-2"},
+                        {"text": {"type": "plain_text", "text": "情報が古い・更新されていない", "emoji": True}, "value": "outdated_info"},
+                        {"text": {"type": "plain_text", "text": "情報が事実に即していない、間違っている", "emoji": True}, "value": "incorrect_response"},
+                        {"text": {"type": "plain_text", "text": "法令や就業規則などに則していない回答だった", "emoji": True}, "value": "non_compliant_response"},
+                        {"text": {"type": "plain_text", "text": "共有されたリンクにアクセスできなかった", "emoji": True}, "value": "invalid_link"},
                     ],
                     "action_id": "radio_buttons_feedback_reason"
                 }
@@ -139,6 +142,7 @@ def build_feedback_block_kit():
             },
             {
                 "type": "input",
+                "block_id": "expected_response_block",
                 "element": {
                     "type": "plain_text_input",
                     "multiline": True,
@@ -152,6 +156,7 @@ def build_feedback_block_kit():
             },
             {
                 "type": "actions",
+                "block_id": "feedback_submit_actions",
                 "elements": [
                     {
                         "type": "button",
@@ -171,22 +176,96 @@ def build_feedback_block_kit():
 
 
 
+def recieve_user_feedback(state_values, logger):
+    value, selected_item = get_selected_item(state_values, logger)
+    user_input = get_user_input_data(state_values, logger)
+    
+    print(f"value: {value}, option: {selected_item}\n")
+    print(f"ユーザーが入力した内容：\n{user_input}\n")
+    
+    return selected_item, user_input
+
+
+
+def get_selected_item(state_values: Dict, logger: logging.Logger) -> tuple[Optional[str], Optional[str]]:
+    """
+    state_values から選択されたラジオボタンの value と text を取得します。
+
+    Args:
+        state_values: body['state']['values'] の辞書。
+        logger: ロギング用のロガーインスタンス。
+
+    Returns:
+        (value, text) のタプル。見つからない場合やエラー時は (None, None)。
+    """
+    
+    reason_value: Optional[str] = None
+    reason_text: Optional[str] = None
+
+    try:
+        reason_state = state_values.get("feedback_reason_block", {}).get("radio_buttons_feedback_reason", {})
+        selected_option = reason_state.get('selected_option')
+
+        if selected_option and isinstance(selected_option, dict):
+            reason_value = selected_option.get('value')
+            option_text_obj = selected_option.get('text')
+            
+            if isinstance(option_text_obj, dict):
+                reason_text = option_text_obj.get('text')
+            
+    except Exception as e:
+        logger.error("blockから値を上手く取り出せませんでした")
+        
+    return reason_value, reason_text
+
+
+
+def get_user_input_data(state_values: Dict, logger: logging.Logger) -> str:
+    """
+    state_values からテキスト入力の値を取得します。
+
+    Args:
+        state_values: body['state']['values'] の辞書。
+        logger: ロギング用のロガーインスタンス。
+
+    Returns:
+        入力されたテキスト。入力がない場合やエラー時は空文字列 ""。
+    """
+    
+    expected_text: str = ""
+    
+    try:
+        # 固定IDを使って state_values からアクセス
+        response_state = state_values.get("expected_response_block", {}).get("text_input_expected_response", {})
+        expected_text_value = response_state.get('value')
+        
+        # None の場合は空文字列 "" にする
+        expected_text = expected_text_value if expected_text_value is not None else ""
+        
+    except Exception as e:
+        logger.error("blockから値を上手く取り出せませんでした")
+
+    return expected_text
+
+
+
 # 特定のキーワードを含むメッセージに反応するイベント
 @app.message("教えてGemini")
 def handle_keyword_message(message, say, event):
-    now = datetime.now(pytz.timezone('Asia/Tokyo'))
+    now = datetime.now(pytz.timezone("Asia/Tokyo"))
     current_time_str = get_current_time(now)
     greeting = get_greeting(now)
+    user_query = message["text"].replace("教えてGemini", "")
     
     # 問い合わせに対して返信する
-    reply_in_thread(say, event, greeting, current_time_str, message['text'])
+    reply_in_thread(say, event, greeting, current_time_str, user_query)
 
 
 
 # アプリへのメンションに反応するイベント
 @app.event("app_mention")
 def handle_app_mention(event, say):
-    now = datetime.now(pytz.timezone('Asia/Tokyo'))
+    now = datetime.now(pytz.timezone("Asia/Tokyo"))
     current_time_str = get_current_time(now)
     greeting = get_greeting(now)
 
@@ -197,7 +276,7 @@ def handle_app_mention(event, say):
     # 「教えてGemini」キーワードが含まれていない場合のみ処理する
     if "教えてGemini" not in event["text"]:
         if user_query:
-            reply_in_thread(say, event, greeting, current_time_str, user_query)  # event を渡す
+            reply_in_thread(say, event, greeting, current_time_str, user_query)
         
         else:
             say("何かご質問はありますか？")
@@ -224,7 +303,7 @@ def handle_feedback_incorrect(ack, body, logger):
 
     # フィードバックフォームを送信
     requests.post(response_url, json= build_feedback_block_kit())
-    logger.info("フィードバックフォームを送信しました。")
+    logger.info("フィードバックを送信しました。")
     
     
 
@@ -238,73 +317,26 @@ def handle_some_action(ack, body, logger):
 @app.action("submit_user_feedback")
 def handle_feedback_submission(ack, body, logger, client):
     ack()
-
-    # 基本情報の取得
-    user_id = body['user']['id']
-    channel_id = body['container']['channel_id']
-    message_ts = body['container']['message_ts']
-    thread_ts = body['container'].get('thread_ts', message_ts) # スレッド対応
-
+        
     # state オブジェクトから入力値を取得
     state_values = body['state']['values']
-    logger.info(f"Received state: {json.dumps(state_values, indent=4)}")
-
-    # ラジオボタンの選択値を取得
-    reason_block_id = "feedback_reason_block"
-    reason_action_id = "radio_buttons_feedback_reason"
-    selected_reason_value = None
-    selected_reason_text = None
-    try:
-        # selected_option が None でないことを確認してからアクセス
-        selected_option = state_values[reason_block_id][reason_action_id].get('selected_option')
-        if selected_option:
-            selected_reason_value = selected_option['value']
-            selected_reason_text = selected_option['text']['text']
-            
-        else:
-            logger.warning("Radio button was not selected.")
-            
-    except KeyError as e:
-        logger.error(f"Error accessing radio button state (Block ID: {reason_block_id}, Action ID: {reason_action_id}): {e}")
-
-    # テキスト入力の値を取得
-    expected_response_block_id = "expected_response_block"
-    expected_response_action_id = "text_input_expected_response"
-    expected_response_text = None
+    logger.info(f"{json.dumps(state_values, indent=4)}\n")
     
-    try:
-        expected_response_text = state_values[expected_response_block_id][expected_response_action_id]['value']
-        # 入力が空の場合、None や空文字列になることがある
-        if expected_response_text is None:
-             expected_response_text = ""
-             
-    except KeyError as e:
-        logger.error(f"Error accessing text input state (Block ID: {expected_response_block_id}, Action ID: {expected_response_action_id}): {e}")
-
-    # 取得した値を使って処理
-    logger.info(f"Feedback submitted by <@{user_id}> in <#{channel_id}> (message: {message_ts})")
-    logger.info(f"  Q1 (Reason): {selected_reason_value} ('{selected_reason_text}')")
-    logger.info(f"  Q2 (Expected): {expected_response_text}")
-
-    # (例) 取得したデータをデータベースに保存する
-    # db.save_feedback(
-    #     user_id=user_id,
-    #     channel_id=channel_id,
-    #     message_ts=message_ts,
-    #     reason=selected_reason_value,
-    #     expected_text=expected_response_text
-    # )
-
-    # (例) ユーザーに完了メッセージを送信
-    try:
-        client.chat_postEphemeral(
-            channel=channel_id,
-            user=user_id,
-            thread_ts=thread_ts,
-            text=f"フィードバックを受け付けました。\n選択された理由: {selected_reason_text}\n期待した回答: {expected_response_text}\nご協力ありがとうございます！"
-        )
-    except SlackApiError as e:
-        logger.error(f"Error posting ephemeral confirmation: {e}")
+    # 選択肢、入力内容を取得
+    option, user_input = recieve_user_feedback(state_values, logger)
+    
+    # 保存したい内容を辞書型で取得
+    interaction_context = {
+        "user_id": body["user"]["id"],
+        "channel_id": body["container"]["channel_id"],
+        "thread_ts": body["container"].get("thread_ts"),
+        "selected_item": option,
+        "user_input": user_input
+    }
+    
+    print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
+    
+    
 
 
    
