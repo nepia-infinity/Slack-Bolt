@@ -255,6 +255,8 @@ def handle_keyword_message(message, say, event):
     now = datetime.now(pytz.timezone("Asia/Tokyo"))
     current_time_str = get_current_time(now)
     greeting = get_greeting(now)
+    
+    # Geminiに送るためのテキストを成形する
     user_query = message["text"].replace("教えてGemini", "")
     
     # 問い合わせに対して返信する
@@ -298,10 +300,9 @@ def handle_feedback_useful(ack, body, logger):
 
 @app.action("feedback_incorrect")
 def handle_feedback_incorrect(ack, body, logger):
-    ack()  # アクションを受け付けたことをSlackに通知
-    response_url = body["response_url"]  # response_urlを取得
+    ack() # アクションの受付をSlackに通知 「 acknowledge（承認する、確認する）」 の略語
+    response_url = body["response_url"]
 
-    # フィードバックフォームを送信
     requests.post(response_url, json= build_feedback_block_kit())
     logger.info("フィードバックを送信しました。")
     
