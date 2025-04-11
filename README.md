@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/25691d02-bc6a-435d-889b-4afb62d300a0)
+
 概要
 このSlackアプリケーションは、社内メンバーからのメンションに応答し、GoogleのGemini APIを活用して質問に対する回答を生成します。Socket Modeを使用しているため、外部公開されたサーバーを必要とせず、社内ネットワーク内でのみ利用可能です。
 
