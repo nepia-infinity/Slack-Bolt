@@ -1,6 +1,5 @@
 from gemini import call_gemini
 import logging, os, pytz, json, requests
-from typing import Dict, Optional
 from datetime import datetime
 from time_utils import get_current_time
 from greeting_utils import get_greeting
