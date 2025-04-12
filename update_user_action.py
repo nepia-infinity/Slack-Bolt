@@ -62,21 +62,24 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
 def show_feedback(client, body, is_useful):
     """フィードバック内容をSlackメッセージに反映"""
 
-    # スレッド内容を取得
-    messages = get_thread_messages(client, body)
-    user_query, answer = extract_question_and_answer(messages)
-
-    # Geminiの回答を記録
-    interaction_context = get_interaction_context(body, user_query, answer)
-
     # メッセージの一部を改変して、ボタンの再入力を避ける
     response_url = body.get("response_url")
+    
     if not response_url:
         logger.error("response_url が不足しています。")
         return
 
     try:
         if is_useful:
+            
+            # スレッド内容を取得
+            messages = get_thread_messages(client, body)
+            user_query, answer = extract_question_and_answer(messages)
+
+            # 役に立ったときの回答をExcelに保存する
+            interaction_context = get_interaction_context(body, user_query, answer)
+            
+            # :white_check_mark: 〇〇 さんが「役に立った」と評価しました。とメッセージの一部を改変する
             original_attachments = body.get("message", {}).get("attachments", [])
             update_payload = {
                 "replace_original": True,

@@ -66,7 +66,14 @@ def get_selected_item(body: Dict, logger: logging.Logger) -> tuple[Optional[str]
 
 
 def recieve_user_feedback(body, logger):
+    """
+    ユーザーが選んだ選択肢と入力内容を取得する関数
     
+    recieve_user_feedback
+    ├── get_selected_item
+    └── get_user_input_data
+    
+    """
     value, selected_item = get_selected_item(body, logger)
     user_input = get_user_input_data(body, logger)
     
