@@ -61,8 +61,12 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
 
 def show_feedback(client, body, is_useful):
     """フィードバック内容をSlackメッセージに反映"""
-
-    # メッセージの一部を改変して、ボタンの再入力を避ける
+    
+    # スレッド内容を取得
+    messages = get_thread_messages(client, body)
+    user_query, answer = extract_question_and_answer(messages)
+    interaction_context = get_interaction_context(body, user_query, answer)
+            
     response_url = body.get("response_url")
     
     if not response_url:
@@ -72,12 +76,11 @@ def show_feedback(client, body, is_useful):
     try:
         if is_useful:
             
-            # スレッド内容を取得
-            messages = get_thread_messages(client, body)
-            user_query, answer = extract_question_and_answer(messages)
-
-            # 役に立ったときの回答をExcelに保存する
-            interaction_context = get_interaction_context(body, user_query, answer)
+            # 役に立った場合、辞書に値を追加
+            interaction_context["is_useful"] = True
+            interaction_context["reason"] = '-'
+            
+            # 辞書型をExcelに保存する
             
             # :white_check_mark: 〇〇 さんが「役に立った」と評価しました。とメッセージの一部を改変する
             original_attachments = body.get("message", {}).get("attachments", [])
