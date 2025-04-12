@@ -20,7 +20,11 @@ client = WebClient(token=os.environ["SLACK_BOT_TOKEN_FOR_SOCKET_MODE"])
     
     
     
-def reply_in_thread(say, event, greeting, current_time_str, user_query):
+def reply_in_thread(say, event, user_query):
+    now = datetime.now(pytz.timezone("Asia/Tokyo"))
+    current_time_str = get_current_time(now)
+    greeting = get_greeting(now)
+    
     thread_ts = event.get("thread_ts") or event["ts"]
     text = f"<@{event['user']}> さん！{greeting}\n"  # event からユーザー情報を取得
     text += f"*受付日時: {current_time_str} * \n\n\n"
@@ -35,31 +39,23 @@ def reply_in_thread(say, event, greeting, current_time_str, user_query):
 # 特定のキーワードを含むメッセージに反応するイベント
 @app.message("教えてGemini")
 def handle_keyword_message(message, say, event):
-    now = datetime.now(pytz.timezone("Asia/Tokyo"))
-    current_time_str = get_current_time(now)
-    greeting = get_greeting(now)
     
     # Geminiに送るためのテキストを成形する
     user_query = message["text"].replace("教えてGemini", "")
-    
-    # 問い合わせに対して返信する
-    reply_in_thread(say, event, greeting, current_time_str, user_query)
+    reply_in_thread(say, event, user_query)
 
 
 
 # アプリへのメンションに反応するイベント
 @app.event("app_mention")
 def handle_app_mention(event, say):
-    now = datetime.now(pytz.timezone("Asia/Tokyo"))
-    current_time_str = get_current_time(now)
-    greeting = get_greeting(now)
 
     # ボット自身のメンション部分を取り除き、ユーザーが実際にボットに尋ねた内容（質問）だけを抽出する処理
     bot_user_id = "<@U016LGTKQCF>"
     user_query = event["text"].replace(bot_user_id, "")
 
     if user_query:
-        reply_in_thread(say, event, greeting, current_time_str, user_query)
+        reply_in_thread(say, event, user_query)
     
     else:
         say("何かご質問はありますか？")
