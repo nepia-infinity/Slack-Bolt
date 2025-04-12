@@ -4,8 +4,8 @@ from datetime import datetime
 from time_utils import get_current_time
 from greeting_utils import get_greeting
 from build_block_kit import format_gemini_response
-from interaction_utils import recieve_user_feedback
 from update_user_action import show_feedback
+from interaction_utils import extract_incorrect_response_feedback
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
@@ -105,23 +105,9 @@ def handle_some_action(ack, body, logger):
 @app.action("submit_user_feedback")
 def handle_feedback_submission(ack, body, logger, client):
     ack()
-        
-    state_values = body['state']['values']
-    logger.info(f"{json.dumps(state_values, indent=4, ensure_ascii=False)}\n") 
     
-    # 選択肢、入力内容を取得
-    option, user_input = recieve_user_feedback(state_values, logger)
-    
-    # 保存したい内容を辞書型で取得
-    interaction_context = {
-        "thread_ts": body["container"].get("thread_ts"),
-        "channel_id": body["container"]["channel_id"],
-        "user_id": body["user"]["id"],
-        "selected_item": option,
-        "user_input": user_input
-    }
-    
-    print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
+    # 選択肢、入力内容を含んだ辞書を取得
+    interaction_context = extract_incorrect_response_feedback(body, logger)
     
     
    

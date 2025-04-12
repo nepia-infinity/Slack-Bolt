@@ -1,6 +1,7 @@
 import logging, json, requests
 from get_slack_messages import get_thread_messages, extract_question_and_answer
 from build_block_kit import build_feedback_block_kit
+from interaction_utils import recieve_user_feedback
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 

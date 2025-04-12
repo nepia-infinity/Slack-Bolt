@@ -2,18 +2,19 @@ import logging, os, pytz, json, requests
 from typing import Dict, Optional
 
 
-def get_user_input_data(state_values: Dict, logger: logging.Logger) -> str:
+def get_user_input_data(body: Dict, logger: logging.Logger) -> str:
     """
     state_values からテキスト入力の値を取得します。
 
     Args:
-        state_values: body['state']['values'] の辞書。
+        body: 辞書。
         logger: ロギング用のロガーインスタンス。
 
     Returns:
         入力されたテキスト。入力がない場合やエラー時は空文字列 ""。
     """
     
+    state_values = body['state']['values']
     expected_text: str = ""
     
     try:
@@ -31,7 +32,7 @@ def get_user_input_data(state_values: Dict, logger: logging.Logger) -> str:
 
 
 
-def get_selected_item(state_values: Dict, logger: logging.Logger) -> tuple[Optional[str], Optional[str]]:
+def get_selected_item(body: Dict, logger: logging.Logger) -> tuple[Optional[str], Optional[str]]:
     """
     state_values から選択されたラジオボタンの value と text を取得します。
 
@@ -42,7 +43,7 @@ def get_selected_item(state_values: Dict, logger: logging.Logger) -> tuple[Optio
     Returns:
         (value, text) のタプル。見つからない場合やエラー時は (None, None)。
     """
-    
+    state_values = body['state']['values']
     reason_value: Optional[str] = None
     reason_text: Optional[str] = None
 
@@ -64,11 +65,40 @@ def get_selected_item(state_values: Dict, logger: logging.Logger) -> tuple[Optio
 
 
 
-def recieve_user_feedback(state_values, logger):
-    value, selected_item = get_selected_item(state_values, logger)
-    user_input = get_user_input_data(state_values, logger)
+def recieve_user_feedback(body, logger):
+    
+    value, selected_item = get_selected_item(body, logger)
+    user_input = get_user_input_data(body, logger)
     
     print(f"value: {value}, option: {selected_item}\n")
     print(f"ユーザーが入力した内容：\n{user_input}\n")
     
     return selected_item, user_input
+
+
+
+def extract_incorrect_response_feedback(body, logger):
+    """
+    ユーザーが「情報が正しくない」を選択した場合のフィードバックデータを抽出し、
+    インタラクションコンテキストを作成する関数。
+
+    Args:
+        body (dict): Slackのアクションリクエストのbody。
+
+    Returns:
+        dict: インタラクションコンテキストを含む辞書。
+    """
+    
+    option, user_input = recieve_user_feedback(body, logger)
+    
+    # 保存したい内容を辞書型で取得
+    interaction_context = {
+        "thread_ts": body["container"].get("thread_ts"),
+        "channel_id": body["container"]["channel_id"],
+        "user_id": body["user"]["id"],
+        "selected_item": option,
+        "user_input": user_input
+    }
+    
+    print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
+    return interaction_context
