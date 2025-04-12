@@ -11,7 +11,7 @@ load_dotenv()
 
 
 
-def get_thread_messages(client: WebClient, channel_id: str, thread_ts: str) -> list | None:
+def get_thread_messages(client: WebClient, body: dict) -> list | None:
     """
     指定されたチャンネルとスレッドタイムスタンプを使用して、
     スレッド内のメッセージを取得します。
@@ -28,6 +28,8 @@ def get_thread_messages(client: WebClient, channel_id: str, thread_ts: str) -> l
         リストの最初の要素が親メッセージになります。
     """
     try:
+        channel_id = body["container"].get("channel_id")
+        thread_ts = body["container"].get("thread_ts")
         response = client.conversations_replies(
             channel=channel_id,
             ts=thread_ts,
