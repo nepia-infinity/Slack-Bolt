@@ -77,7 +77,8 @@ def show_feedback(client, body, is_useful):
             
             # 役に立った場合、辞書に値を追加
             interaction_context["is_useful"] = True
-            interaction_context["reason"] = '-'
+            interaction_context["selected_item"] = '-'
+            interaction_context["expected_response"] = '-'
             
             # 辞書型をExcelに保存する
             save_record_to_excel(interaction_context)
@@ -99,6 +100,10 @@ def show_feedback(client, body, is_useful):
         else:
             # どこが間違っているかをユーザーに選んでもらうフォームを送信する
             requests.post(response_url, json=build_feedback_block_kit()).raise_for_status()
+            
+            # Geminiの回答を保持するために返り値に設定
+            interaction_context["is_useful"] = False
+            return interaction_context
         
     except Exception as e:
         logger.error(f"メッセージ更新中にエラー発生: {e}", exc_info=True)
