@@ -48,7 +48,7 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
         "channel_id": channel_id,
         "user_id": user_id,
         "user_query": user_query,
-        "answer": answer
+        "gemini_response": answer
     }
 
     print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
