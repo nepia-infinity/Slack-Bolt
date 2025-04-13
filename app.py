@@ -106,7 +106,7 @@ def handle_feedback_submission(ack, body, logger, client):
     # 選択肢、入力内容を含んだ辞書を取得
     interaction_context = extract_incorrect_response_feedback(body, logger)
     
-    # 辞書を保存する
+    # 辞書を元にExcel内のデータを更新する
     
     
     # FeedBackを送信しました！！と内容を改変する

@@ -49,7 +49,10 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
         "channel_id": channel_id,
         "user_id": user_id,
         "user_query": user_query,
-        "gemini_response": answer
+        "gemini_response": answer,
+        "is_useful": None,
+        "selected_item": "-",
+        "expected_response": "-"
     }
 
     print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
@@ -77,8 +80,6 @@ def show_feedback(client, body, is_useful):
             
             # 役に立った場合、辞書に値を追加
             interaction_context["is_useful"] = True
-            interaction_context["selected_item"] = '-'
-            interaction_context["expected_response"] = '-'
             
             # 辞書型をExcelに保存する
             save_record_to_excel(interaction_context)
@@ -103,7 +104,9 @@ def show_feedback(client, body, is_useful):
             
             # Geminiの回答を保持するために返り値に設定
             interaction_context["is_useful"] = False
-            return interaction_context
+
+            # 辞書型をExcelに保存する
+            save_record_to_excel(interaction_context)
         
     except Exception as e:
         logger.error(f"メッセージ更新中にエラー発生: {e}", exc_info=True)
