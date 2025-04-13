@@ -4,7 +4,7 @@ from datetime import datetime
 from time_utils import get_current_time
 from greeting_utils import get_greeting
 from build_block_kit import format_gemini_response
-from update_user_action import show_feedback
+from update_user_action import show_feedback, acknowledge_feedback_submission
 from interaction_utils import extract_incorrect_response_feedback
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -107,7 +107,9 @@ def handle_feedback_submission(ack, body, logger, client):
     
     # 辞書を保存する
     
+    
     # FeedBackを送信しました！！と内容を改変する
+    acknowledge_feedback_submission(body, client, logger)
     
     
    

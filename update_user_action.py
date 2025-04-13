@@ -1,9 +1,6 @@
 import logging, json, requests
 from get_slack_messages import get_thread_messages, extract_question_and_answer
 from build_block_kit import build_feedback_block_kit
-from interaction_utils import recieve_user_feedback
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +41,7 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
     """ユーザーのインタラクション情報を取得し、辞書形式で返す"""
     user_id = body.get("user", {}).get("id")
     thread_ts = body["container"].get("thread_ts")
-    channel_id = body["container"]["channel_id"]
+    channel_id = body["container"].get("channel_id")
 
     interaction_context = {
         "thread_ts": thread_ts,
@@ -66,6 +63,8 @@ def show_feedback(client, body, is_useful):
     messages = get_thread_messages(client, body)
     user_query, answer = extract_question_and_answer(messages)
     interaction_context = get_interaction_context(body, user_query, answer)
+    
+    # 内容を保存する
             
     response_url = body.get("response_url")
     
@@ -103,3 +102,37 @@ def show_feedback(client, body, is_useful):
     except Exception as e:
         logger.error(f"メッセージ更新中にエラー発生: {e}", exc_info=True)
         requests.post(response_url, json={"replace_original": False, "text": "エラーが発生しました。"})
+        
+
+
+def acknowledge_feedback_submission(body, client, logger):
+    
+    # アクションボタンを削除し、フィードバック確認用のコンテキストブロックを追加
+    original_blocks = body.get("message", {}).get("blocks", [])
+    filtered_blocks = [block for block in original_blocks if block.get("type") != "actions"]
+    
+    # フィルタリングされたブロックに確認メッセージを追加
+    filtered_blocks.append({
+        "type": "context",
+        "elements": [
+            {
+                "type": "mrkdwn",
+                "text": ":white_check_mark: FeedBackを送信しました！！"
+            }
+        ]
+    })
+    
+    print(filtered_blocks)
+
+    try:
+        client.chat_update(
+            channel=body["channel"]["id"],
+            ts=body["message"]["ts"], 
+            blocks=filtered_blocks,
+            text="FeedBackを送信しました。"
+        )
+        
+        logger.info("FeedBackが送信されました！！")
+
+    except Exception as e:
+        logger.error(f"メッセージの更新エラー: {e}")
