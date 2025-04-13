@@ -6,6 +6,7 @@ from greeting_utils import get_greeting
 from build_block_kit import format_gemini_response
 from update_user_action import show_feedback, acknowledge_feedback_submission
 from interaction_utils import extract_incorrect_response_feedback
+from save_excel import save_record_to_excel
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient

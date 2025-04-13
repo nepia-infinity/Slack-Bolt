@@ -1,6 +1,7 @@
 import logging, json, requests
 from get_slack_messages import get_thread_messages, extract_question_and_answer
 from build_block_kit import build_feedback_block_kit
+from save_excel import save_record_to_excel
 
 logger = logging.getLogger(__name__)
 
@@ -63,9 +64,8 @@ def show_feedback(client, body, is_useful):
     messages = get_thread_messages(client, body)
     user_query, answer = extract_question_and_answer(messages)
     interaction_context = get_interaction_context(body, user_query, answer)
-    
-    # 内容を保存する
-            
+
+    # 更新用URLを取得
     response_url = body.get("response_url")
     
     if not response_url:
@@ -80,6 +80,7 @@ def show_feedback(client, body, is_useful):
             interaction_context["reason"] = '-'
             
             # 辞書型をExcelに保存する
+            save_record_to_excel(interaction_context)
             
             # :white_check_mark: 〇〇 さんが「役に立った」と評価しました。とメッセージの一部を改変する
             original_attachments = body.get("message", {}).get("attachments", [])
