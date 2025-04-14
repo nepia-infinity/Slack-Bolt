@@ -2,6 +2,7 @@ import logging, json, requests
 from get_slack_messages import get_thread_messages, extract_question_and_answer
 from build_block_kit import build_feedback_block_kit
 from save_excel import save_record_to_excel
+from interaction_utils import get_interaction_context
 
 logger = logging.getLogger(__name__)
 
@@ -35,28 +36,6 @@ def modified_feedback_blocks(body):
     
     print(f"{json.dumps(filtered_blocks, indent=4, ensure_ascii=False)}\n")
     return filtered_blocks
-
-
-
-def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
-    """ユーザーのインタラクション情報を取得し、辞書形式で返す"""
-    user_id = body.get("user", {}).get("id")
-    thread_ts = body["container"].get("thread_ts")
-    channel_id = body["container"].get("channel_id")
-
-    interaction_context = {
-        "thread_ts": thread_ts,
-        "channel_id": channel_id,
-        "user_id": user_id,
-        "user_query": user_query,
-        "gemini_response": answer,
-        "is_useful": None,
-        "selected_item": "-",
-        "expected_response": "-"
-    }
-
-    print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
-    return interaction_context
 
 
 

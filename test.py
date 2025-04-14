@@ -1,5 +1,7 @@
 import pandas as pd
 from openpyxl import load_workbook
+from time_utils import convert_thread_ts_to_unix
+from save_excel import update_excel_row
 import os
 
 
@@ -98,17 +100,42 @@ def test_save_record_to_excel(data: dict):
 
 
     
+def test_convert_thread_ts_to_unix():
+    thread_ts = "1744593029.666519"
+    result = convert_thread_ts_to_unix(thread_ts)
     
-if __name__ == "__main__":
+
+
+def test_update_excel_row():
+    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\faq_history.xlsx"
+    sheet_name = "faq_history"
     data = {
-        "thread_ts": "1744506064.018759",
+        "thread_ts": "1744598437.208029",
+        "formatted_ts": "2025/04/14 11:40:37",
         "channel_id": "C02B2S137FC",
         "user_id": "UQEHCN01E",
-        "user_query": "教えてGemini　無色転生について教えて",
-        "gemini_response": "<@UQEHCN01E> さん！お疲れ様です。\n*受付日時: 2025/04/13（日）10:01 * \n\n\n無職転生 ですね。\n\n*無職転生* は 、 理不尽な死を遂げた主人公が 、 剣と魔法の異世界で生まれ変わり  、 成長していく物語です 。 人生を後悔している主人公が 、 前世の記憶と経験を活かし 、 新たな世界で様々な困難に立ち向かい 、 生き抜く姿が描かれています 。\n\n詳細はこちらをご覧ください 。\n\n<https://mushokutensei.jp/>\n",
-        "is_useful": False,
-        "selected_item": "共有されたリンクにアクセスできなかった",
-        "expected_response" : "正しいリンクが表示されていえば完璧だった。"
+        "selected_item": "情報が古い・更新されていない",
+        "user_input": "本当なわけあるかぁー"
     }
+
+    update_excel_row(file_path, sheet_name, data)
     
-    test_save_record_to_excel(data)
+    return
+
+if __name__ == "__main__":
+    test_update_excel_row()
+    
+    # test_convert_thread_ts_to_unix()
+    
+    # data = {
+    #     "thread_ts": "1744506064.018759",
+    #     "channel_id": "C02B2S137FC",
+    #     "user_id": "UQEHCN01E",
+    #     "user_query": "教えてGemini　無色転生について教えて",
+    #     "gemini_response": "<@UQEHCN01E> さん！お疲れ様です。\n*受付日時: 2025/04/13（日）10:01 * \n\n\n無職転生 ですね。\n\n*無職転生* は 、 理不尽な死を遂げた主人公が 、 剣と魔法の異世界で生まれ変わり  、 成長していく物語です 。 人生を後悔している主人公が 、 前世の記憶と経験を活かし 、 新たな世界で様々な困難に立ち向かい 、 生き抜く姿が描かれています 。\n\n詳細はこちらをご覧ください 。\n\n<https://mushokutensei.jp/>\n",
+    #     "is_useful": False,
+    #     "selected_item": "共有されたリンクにアクセスできなかった",
+    #     "expected_response" : "正しいリンクが表示されていえば完璧だった。"
+    # }
+    
+    # test_save_record_to_excel(data)

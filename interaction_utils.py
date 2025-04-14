@@ -1,5 +1,8 @@
-import logging, os, pytz, json, requests
+import logging, json 
 from typing import Dict, Optional
+from time_utils import convert_thread_ts_to_unix
+
+
 
 
 def get_user_input_data(body: Dict, logger: logging.Logger) -> str:
@@ -84,6 +87,29 @@ def recieve_user_feedback(body, logger):
 
 
 
+def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
+    """ユーザーのインタラクション情報を取得し、辞書形式で返す"""
+    user_id = body.get("user", {}).get("id")
+    thread_ts = body["container"].get("thread_ts")
+    channel_id = body["container"].get("channel_id")
+
+    interaction_context = {
+        "thread_ts": thread_ts,
+        "formatted_ts": convert_thread_ts_to_unix(thread_ts),
+        "channel_id": channel_id,
+        "user_id": user_id,
+        "user_query": user_query,
+        "gemini_response": answer,
+        "is_useful": None,
+        "selected_item": "-",
+        "expected_response": "-"
+    }
+
+    print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")
+    return interaction_context
+
+
+
 def extract_incorrect_response_feedback(body, logger):
     """
     ユーザーが「情報が正しくない」を選択した場合のフィードバックデータを抽出し、
@@ -97,14 +123,16 @@ def extract_incorrect_response_feedback(body, logger):
     """
     
     option, user_input = recieve_user_feedback(body, logger)
+    thread_ts = body["container"].get("thread_ts")
     
     # 保存したい内容を辞書型で取得
     interaction_context = {
-        "thread_ts": body["container"].get("thread_ts"),
+        "thread_ts": thread_ts,
+        "formatted_ts": convert_thread_ts_to_unix(thread_ts),
         "channel_id": body["container"]["channel_id"],
         "user_id": body["user"]["id"],
         "selected_item": option,
-        "user_input": user_input
+        "expected_response": user_input
     }
     
     print(f"{json.dumps(interaction_context, indent=4, ensure_ascii=False)}\n")

@@ -1,5 +1,6 @@
 import pandas as pd
 from openpyxl import load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 import os
 
 
@@ -69,11 +70,39 @@ def save_record_to_excel(data: dict):
     print(f"{excel_file_path} に保存されました。")
     
  
+
+def find_column_by_header_name(sheet: Worksheet, column_name: str) -> int:
+    for col in range(1, sheet.max_column + 1):
+        cell_value = sheet.cell(row=1, column=col).value
+        if cell_value == column_name:
+            return col
+    raise ValueError(f"'{column_name}' という列が見つかりません。")
+
+
+   
+def find_row_by_thread_ts(sheet: Worksheet, data: dict) -> int:
+    thread_ts = data.get("thread_ts")
+    thread_ts_col = find_column_by_header_name(sheet, "thread_ts")
     
-def main():
-    return
+    for row in range(2, sheet.max_row + 1):  # 1行目はヘッダ
+        cell_value = sheet.cell(row=row, column=thread_ts_col).value
+        if str(cell_value) == thread_ts:
+            return row
+    raise ValueError("対象の thread_ts が見つかりません。")
 
 
 
-if __name__ == "__main__":
-    main()
+def update_excel_row(file_path: str, sheet_name: str, data: dict):
+    wb = load_workbook(file_path)
+    sheet = wb[sheet_name]
+
+    target_row = find_row_by_thread_ts(sheet, data)
+    
+    # ここで必要なカラムを更新（例: "selected_item" と "user_input" を更新）
+    for key in ["selected_item", "user_input"]:
+        col = find_column_by_header_name(sheet, key)
+        sheet.cell(row=target_row, column=col).value = data[key]
+    
+    wb.save(file_path)
+    print(f"{target_row}行目を更新しました。")
+
