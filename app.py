@@ -6,7 +6,7 @@ from greeting_utils import get_greeting
 from build_block_kit import format_gemini_response
 from update_user_action import show_feedback, acknowledge_feedback_submission
 from interaction_utils import extract_incorrect_response_feedback
-from save_excel import save_record_to_excel
+from save_excel import update_excel_row
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
@@ -107,7 +107,9 @@ def handle_feedback_submission(ack, body, logger, client):
     interaction_context = extract_incorrect_response_feedback(body, logger)
     
     # 辞書に記載されたタイムスタンプを元にExcel内のデータを更新する
-    
+    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\feedback_data.xlsx"
+    sheet_name = "faq_history"
+    update_excel_row(file_path, sheet_name, interaction_context)
     
     # FeedBackを送信しました！！と内容を改変する
     acknowledge_feedback_submission(body, client, logger)
