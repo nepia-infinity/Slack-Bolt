@@ -1,5 +1,5 @@
 from gemini import call_gemini
-import logging, os, pytz, json, requests
+import logging, os, pytz
 from datetime import datetime
 from time_utils import get_current_time
 from greeting_utils import get_greeting
@@ -10,7 +10,6 @@ from save_excel import update_excel_row
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 from dotenv import load_dotenv
 
 logging.basicConfig(level=logging.DEBUG)
