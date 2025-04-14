@@ -99,7 +99,7 @@ def update_excel_row(file_path: str, sheet_name: str, data: dict):
     target_row = find_row_by_thread_ts(sheet, data)
     
     # ここで必要なカラムを更新（例: "selected_item" と "user_input" を更新）
-    for key in ["selected_item", "user_input"]:
+    for key in ["selected_item", "expected_response"]:
         col = find_column_by_header_name(sheet, key)
         sheet.cell(row=target_row, column=col).value = data[key]
     

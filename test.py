@@ -107,7 +107,7 @@ def test_convert_thread_ts_to_unix():
 
 
 def test_update_excel_row():
-    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\faq_history.xlsx"
+    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\test.xlsx"
     sheet_name = "faq_history"
     data = {
         "thread_ts": "1744598437.208029",
@@ -115,7 +115,7 @@ def test_update_excel_row():
         "channel_id": "C02B2S137FC",
         "user_id": "UQEHCN01E",
         "selected_item": "情報が古い・更新されていない",
-        "user_input": "本当なわけあるかぁー"
+        "expected_response": "本当なわけあるかぁー"
     }
 
     update_excel_row(file_path, sheet_name, data)
