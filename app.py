@@ -107,7 +107,7 @@ def handle_feedback_submission(ack, body, logger, client):
     interaction_context = extract_incorrect_response_feedback(body, logger)
     
     # 辞書に記載されたタイムスタンプを元にExcel内のデータを更新する
-    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\feedback_data.xlsx"
+    file_path = r"C:\Users\nepia\OneDrive\デスクトップ\Slack_Bolt\excel\faq_history.xlsx"
     sheet_name = "faq_history"
     update_excel_row(file_path, sheet_name, interaction_context)
     
