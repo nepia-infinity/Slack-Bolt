@@ -91,12 +91,14 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
     """ユーザーのインタラクション情報を取得し、辞書形式で返す"""
     user_id = body.get("user", {}).get("id")
     thread_ts = body["container"].get("thread_ts")
-    channel_id = body["container"].get("channel_id")
+    channel_id = body["container"].get("channel_id")    
+    thread_ts_for_url = thread_ts.replace(".", "")
 
     interaction_context = {
         "thread_ts": thread_ts,
         "formatted_ts": convert_thread_ts_to_unix(thread_ts),
         "channel_id": channel_id,
+        "channel_id": f"https://soralize.slack.com/archives/{channel_id}/p{thread_ts_for_url}",
         "user_id": user_id,
         "user_query": user_query,
         "gemini_response": answer,
