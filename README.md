@@ -1,20 +1,25 @@
 ![image](https://github.com/user-attachments/assets/1034b932-e2da-41a6-a959-9c711145a10a)
 ![image](https://github.com/user-attachments/assets/0075a8e1-6c63-4938-91db-9d2da2de1336)
 
+# 概要
+- GoogleのGemini APIを活用して質問に対する回答を生成
+- Socket Modeを使用しているため、外部公開されたサーバーを必要とせず利用可能
 
-概要
-このSlackアプリケーションは、社内メンバーからのメンションに応答し、GoogleのGemini APIを活用して質問に対する回答を生成します。Socket Modeを使用しているため、外部公開されたサーバーを必要とせず、社内ネットワーク内でのみ利用可能です。
-
-主な機能
+# 主な機能
 - メンション応答:
 - 特定のキーワードによる応答
 - スレッドへの返信
 
-動作環境
+# 動作環境
 - Python 3.8以上
 - Slackワークスペースへのアクセス権 (アプリのインストール権限)
 - Google Cloud プロジェクトおよび Gemini API の有効化
 - 必要なPythonライブラリ (slack_bolt, google-generativeai, python-dotenv)
+
+# パスの変更点
+- `save_excel.py` のパス
+- `interaction_utils`　の `thread_url`のパス
+- `app.py` のパス
 
 Activate
 ```
