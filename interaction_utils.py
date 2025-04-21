@@ -98,7 +98,7 @@ def get_interaction_context(body: dict, user_query: str, answer: str) -> dict:
         "thread_ts": thread_ts,
         "formatted_ts": convert_thread_ts_to_unix(thread_ts),
         "channel_id": channel_id,
-        "channel_id": f"https://soralize.slack.com/archives/{channel_id}/p{thread_ts_for_url}",
+        "thread_url": f"https://soralize.slack.com/archives/{channel_id}/p{thread_ts_for_url}",
         "user_id": user_id,
         "user_query": user_query,
         "gemini_response": answer,
